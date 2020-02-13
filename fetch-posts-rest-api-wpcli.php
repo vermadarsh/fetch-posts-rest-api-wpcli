@@ -169,11 +169,11 @@ if ( ! class_exists( 'frpwpFetchPosts' ) ) :
                 $image_url = $media_data->guid->rendered;
 
                 // Add Featured Image to Post
-                $imageName       = basename( $image_url );
-                $uploadDir       = wp_upload_dir(); // Set upload folder
-                $imageData       = file_get_contents( $image_url ); // Get image data
+                $imageName = basename( $image_url );
+                $uploadDir = wp_upload_dir(); // Set upload folder
+                $imageData = file_get_contents( $image_url ); // Get image data
                 $uniqueFileName = wp_unique_filename( $uploadDir['path'], $imageName ); // Generate unique name
-                $filename         = basename( $uniqueFileName ); // Create image file name
+                $filename = basename( $uniqueFileName ); // Create image file name
 
                 // Check folder permission and define file location
                 if ( wp_mkdir_p( $uploadDir['path'] ) ) :
