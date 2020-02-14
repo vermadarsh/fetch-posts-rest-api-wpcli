@@ -162,14 +162,25 @@ if ( ! class_exists( 'FP_Fetch_Remote_Posts' ) ) :
 			$media_data = json_decode( wp_remote_retrieve_body( $response ) );
 
 			if ( isset( $media_data->guid->rendered ) && ! empty( $media_data->guid->rendered ) ) :
+
+				global $wp_filesystem;
 				esc_html_e( 'Adding featured media..', 'fetchremoteposts' );
 				echo "\n";
 				$image_url = $media_data->guid->rendered;
 
 				// Add Featured Image to Post.
-				$image_name       = basename( $image_url );
-				$upload_dir       = wp_upload_dir(); // Set upload folder.
-				$image_data       = file_get_contents( $image_url ); // Get image data.
+				$image_name = basename( $image_url );
+				$upload_dir = wp_upload_dir(); // Set upload folder.
+
+				if ( ! function_exists( 'WP_Filesystem' ) ) {
+					require_once ABSPATH . 'wp-admin/includes/file.php';
+				}
+
+				if ( is_null( $wp_filesystem ) ) {
+					WP_Filesystem();
+				}
+
+				$image_data       = $wp_filesystem->get_contents( $image_url );
 				$unique_file_name = wp_unique_filename( $upload_dir['path'], $image_name ); // Generate unique name.
 				$filename         = basename( $unique_file_name ); // Create image file name.
 
@@ -181,7 +192,11 @@ if ( ! class_exists( 'FP_Fetch_Remote_Posts' ) ) :
 				endif;
 
 				// Create the image  file on the server.
-				file_put_contents( $file, $image_data );
+				$wp_filesystem->put_contents(
+					$file,
+					$image_data,
+					FS_CHMOD_FILE
+				);
 
 				// Check image file type.
 				$wp_filetype = wp_check_filetype( $filename, null );
