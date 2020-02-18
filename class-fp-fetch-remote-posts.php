@@ -38,35 +38,39 @@ if ( ! class_exists( 'FP_Fetch_Remote_Posts' ) ) :
 		 */
 		public function from( $args, $assoc_args ) {
 
-			if ( isset( $assoc_args['website'] ) && ! empty( $assoc_args['website'] ) ) :
-				$url = $assoc_args['website'];
+			$url = WP_CLI\Utils\get_flag_value( $assoc_args, 'website' );
+			if ( ! empty( $url ) && filter_var( $url, FILTER_VALIDATE_URL ) ) :
 
-				if ( filter_var( $url, FILTER_VALIDATE_URL ) ) :
-					if ( isset( $assoc_args['post_type'] ) && ! empty( $assoc_args['post_type'] ) ) :
-						$post_types = $assoc_args['post_type'];
-						/**
-						 * Check if this argument sets for multiple CPTs.
-						 */
-						if ( false !== stripos( $post_types, ',', true ) ) :
-							$post_types = explode( ',', $post_types );
-							if ( ! empty( $post_types ) && is_array( $post_types ) ) :
-								foreach ( $post_types as $post_type ) :
-									$this->frp_import_posts( $url, $post_type );
-								endforeach;
-							endif;
-						else :
-							$this->frp_import_posts( $url, $post_types );
+				$post_types = WP_CLI\Utils\get_flag_value( $assoc_args, 'post_type' );
+				if ( ! empty( $assoc_args['post_type'] ) ) :
+
+					/**
+					 * Check if this argument sets for multiple CPTs.
+					 */
+					if ( false !== stripos( $post_types, ',', true ) ) :
+
+						$post_types = explode( ',', $post_types );
+						if ( ! empty( $post_types ) && is_array( $post_types ) ) :
+
+							foreach ( $post_types as $post_type ) :
+								$this->frp_import_posts( $url, $post_type );
+							endforeach;
+
 						endif;
+
 					else :
-						$this->frp_import_posts( $url, 'posts' );
+						$this->frp_import_posts( $url, $post_types );
 					endif;
+
 				else :
-					/* translators: %s: remote url */
-					WP_CLI::error( sprintf( esc_html__( '%1$s is not a valid URL.', 'fetchremoteposts' ), $url ) );
+					$this->frp_import_posts( $url, 'posts' );
 				endif;
+
 			else :
-				WP_CLI::error( 'URL parameter missing.' );
+				/* translators: %s: remote url */
+				WP_CLI::error( sprintf( esc_html__( '%1$s is not a valid URL.', 'fetchremoteposts' ), $url ) );
 			endif;
+
 		}
 
 		/**
@@ -150,12 +154,14 @@ if ( ! class_exists( 'FP_Fetch_Remote_Posts' ) ) :
 		 */
 		protected function frp_update_featured_image( $url, $media_id, $post_id ) {
 
+			esc_html_e( 'Fetching featured media..', 'fetchremoteposts' );
+			echo "\n";
 			$response = wp_remote_get( "{$url}/wp-json/wp/v2/media/{$media_id}" );
 
 			if ( is_wp_error( $response ) ) :
 				$error_msg = $response->get_error_message();
 				/* translators: %s: error message */
-				WP_CLI::error( sprintf( esc_html__( 'The API returned an error: %1$s', 'fetchremoteposts' ) ), $error_msg );
+				echo sprintf( esc_html__( 'Error while fetching featured media: %1$s', 'fetchremoteposts' ), $error_msg ) . "\n";
 			endif;
 
 			// Get the body.
@@ -238,12 +244,14 @@ if ( ! class_exists( 'FP_Fetch_Remote_Posts' ) ) :
 		 */
 		protected function frp_update_post_categories( $url, $post_id, $remote_post_id ) {
 
+			esc_html_e( 'Fetching post categories..', 'fetchremoteposts' );
+			echo "\n";
 			$response = wp_remote_get( "{$url}/wp-json/wp/v2/categories?post={$remote_post_id}" );
 
 			if ( is_wp_error( $response ) ) :
 				$error_msg = $response->get_error_message();
 				/* translators: %s: error message */
-				WP_CLI::error( sprintf( esc_html__( 'The API returned an error: %1$s', 'fetchremoteposts' ) ), $error_msg );
+				echo sprintf( esc_html__( 'Error while fetching post categories: %1$s', 'fetchremoteposts' ), $error_msg ) . "\n";
 			endif;
 
 			// Get the body.
@@ -290,12 +298,14 @@ if ( ! class_exists( 'FP_Fetch_Remote_Posts' ) ) :
 		 */
 		protected function frp_update_post_tags( $url, $post_id, $remote_post_id ) {
 
+			esc_html_e( 'Fetching post tags..', 'fetchremoteposts' );
+			echo "\n";
 			$response = wp_remote_get( "{$url}/wp-json/wp/v2/tags?post={$remote_post_id}" );
 
 			if ( is_wp_error( $response ) ) :
 				$error_msg = $response->get_error_message();
 				/* translators: %s: error message */
-				WP_CLI::error( sprintf( esc_html__( 'The API returned an error: %1$s', 'fetchremoteposts' ) ), $error_msg );
+				echo sprintf( esc_html__( 'Error while fetching post tags: %1$s', 'fetchremoteposts' ), $error_msg ) . "\n";
 			endif;
 
 			// Get the body.
@@ -342,12 +352,14 @@ if ( ! class_exists( 'FP_Fetch_Remote_Posts' ) ) :
 		 */
 		protected function frp_import_post_comments( $url, $post_id, $remote_post_id ) {
 
+			esc_html_e( 'Fetching post comments..', 'fetchremoteposts' );
+			echo "\n";
 			$response = wp_remote_get( "{$url}/wp-json/wp/v2/comments?post={$remote_post_id}" );
 
 			if ( is_wp_error( $response ) ) :
 				$error_msg = $response->get_error_message();
 				/* translators: %s: error message */
-				WP_CLI::error( sprintf( esc_html__( 'The API returned an error: %1$s', 'fetchremoteposts' ) ), $error_msg );
+				echo sprintf( esc_html__( 'Error while fetching post comments: %1$s', 'fetchremoteposts' ), $error_msg ) . "\n";
 			endif;
 
 			// Get the body.
